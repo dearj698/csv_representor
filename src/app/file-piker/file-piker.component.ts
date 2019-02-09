@@ -1,22 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import * as papa from 'papaparse';
 export interface PeriodicElement {
   name: string;
-  position: number; marketPercent: number;
-  symbol: string;
+  percent1: number; percent2: number;
+  difference: number;
 }
 
-const ELEMENT_DATA: PeriodicElement[] = [
-  {position: 1, name: 'Hydrogen', marketPercent: 1.0079, symbol: 'H'},
-  {position: 2, name: 'Helium', marketPercent: 4.0026, symbol: 'He'},
-  {position: 3, name: 'Lithium', marketPercent: 6.941, symbol: 'Li'},
-  {position: 4, name: 'Beryllium', marketPercent: 9.0122, symbol: 'Be'},
-  {position: 5, name: 'Boron', marketPercent: 10.811, symbol: 'B'},
-  {position: 6, name: 'Carbon', marketPercent: 12.0107, symbol: 'C'},
-  {position: 7, name: 'Nitrogen', marketPercent: 14.0067, symbol: 'N'},
-  {position: 8, name: 'Oxygen', marketPercent: 15.9994, symbol: 'O'},
-  {position: 9, name: 'Fluorine', marketPercent: 18.9984, symbol: 'F'},
-  {position: 10, name: 'Neon', marketPercent: 20.1797, symbol: 'Ne'},
+let ELEMENT_DATA: PeriodicElement[] = [
 ];
 @Component({
   selector: 'app-file-piker',
@@ -26,32 +16,69 @@ const ELEMENT_DATA: PeriodicElement[] = [
 export class FilePikerComponent implements OnInit {
   csvData: any[] = [];
   headerRow: any[] = [];
+  analyzed = false;
   uploaded = false;
-  displayedColumns: string[] = ['position', 'name',  marketPercent, 'symbol'];
+  displayedColumns: string[] = ['name', 'percent1',  'percent2', 'difference'];
   dataSource = ELEMENT_DATA;
   constructor() { }
-  public changeListener(files: FileList) {
+  public changeListener1(files: FileList) {
     console.log(files);
     if (files && files.length > 0) {
-      const file : File = files.item(0);
-      console.log(file.name);
-      console.log(file.size);
-      console.log(file.type);
+      const file: File = files.item(0);
       const reader: FileReader = new FileReader();
       reader.readAsText(file);
       reader.onload = (e) => {
         // @ts-ignore
         const csv: string = reader.result;
         this.extractData(csv);
-        console.log(this.csvData);
+
+        for ( let i = 0; i < this.csvData.length; i++) {
+          let temp = this.csvData[5 + i][1];
+          let percent = temp.toString().substring(2).substr(0  , 7);
+          let num = parseFloat(percent);
+          ELEMENT_DATA.push({  name: this.csvData[5 + i][0],
+            percent1: num, percent2: 0,
+            difference: 0});
+        }
+        console.log('element data is : ' + ELEMENT_DATA[0].percent1);
       };
     }
+  }
+
+  public changeListener2(files: FileList) {
+    console.log(files);
+    if (files && files.length > 0) {
+      const file: File = files.item(0);
+      const reader: FileReader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = (e) => {
+        // @ts-ignore
+        const csv: string = reader.result;
+        this.extractData(csv);
+
+        for ( let i = 0; i < this.csvData.length; i++) {
+          let temp = this.csvData[5 + i][1];
+          let percent = temp.toString().substring(2).substr(0, 7);
+          let num =parseFloat(percent);
+            ELEMENT_DATA[i].percent2 = num;
+            ELEMENT_DATA[i].difference = Math.round((ELEMENT_DATA[i].percent1 - num) * 100000) / 100000;
+        }
+        console.log('element data is : ' + ELEMENT_DATA[0].percent1);
+      };
+    }
+  }
+  private showbtn() {
+    this.uploaded = true;
   }
   private extractData(res) {
     const parsedData = papa.parse(res).data;
     this.headerRow = parsedData[0];
     parsedData.splice(0, 1);
     this.csvData = parsedData;
+  }
+  private refresh() {
+  this.analyzed = true;
+
   }
   ngOnInit() {
   }
