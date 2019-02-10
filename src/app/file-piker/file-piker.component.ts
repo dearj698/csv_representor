@@ -57,11 +57,15 @@ export class FilePikerComponent implements OnInit {
         this.extractData(csv);
 
         for ( let i = 0; i < this.csvData.length; i++) {
-          let temp = this.csvData[5 + i][1];
-          let percent = temp.toString().substring(2).substr(0, 7);
-          let num =parseFloat(percent);
-            ELEMENT_DATA[i].percent2 = num;
-            ELEMENT_DATA[i].difference = Math.round((ELEMENT_DATA[i].percent1 - num) * 100000) / 100000;
+          let temp = this.csvData[5 + i][1]; // this is the string value of percentage
+          let percent = temp.toString().substring(2).substr(0, 7); // sub the = and " "
+          let num =parseFloat(percent); // convert to number
+          for ( let j = 0; j <ELEMENT_DATA.length; j++ ) {
+            if (ELEMENT_DATA[j].name === this.csvData[5 + i][0]) {
+              ELEMENT_DATA[j].percent2 = num;
+              ELEMENT_DATA[j].difference = Math.round((ELEMENT_DATA[j].percent1 - num) * 100000) / 100000;
+            }
+          }
         }
         console.log('element data is : ' + ELEMENT_DATA[0].percent1);
       };
